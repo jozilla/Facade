@@ -1,3 +1,23 @@
+#! /usr/bin/env python
+#
+# Facade -- Detect presence automatically with a webcam.
+# Copyright (C) 2008  Jo Vermeulen
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
 import dbus
 import dbus.service
 if getattr(dbus, 'version', (0,0,0)) >= (0,41,0):
@@ -15,7 +35,7 @@ import pynotify
 
 from facedetection import FaceDetector
 
-class Daemon(dbus.service.Object):
+class FacadeDaemon(dbus.service.Object):
     def __init__(self, bus_name, object_path="/Daemon"):
         dbus.service.Object.__init__(self, bus_name, object_path)
         self.setup()
@@ -31,11 +51,11 @@ class Daemon(dbus.service.Object):
         self.status_icon.set_tooltip('Available')
         self.status_icon.set_visible(True)
 
-        pynotify.init('Face detection daemon')
+        pynotify.init('Facade')
 
         self.status_toggle = True
 
-    @dbus.service.method('net.jozilla.FoodBot.Presence.FaceDetectionDaemonInterface')
+    @dbus.service.method('net.jozilla.Facade.FaceDetectionDaemonInterface')
     def start(self):
         """Start the loop that keeps tracking the user's face."""
         if self.search_faces == False:
@@ -45,7 +65,7 @@ class Daemon(dbus.service.Object):
         self.face_thread = Thread(target=self.detect)
         self.face_thread.start()
 
-    @dbus.service.method('net.jozilla.FoodBot.Presence.FaceDetectionDaemonInterface')
+    @dbus.service.method('net.jozilla.Facade.FaceDetectionDaemonInterface')
     def stop(self):
         self.search_faces = False
 
@@ -147,9 +167,9 @@ if __name__ == "__main__":
 
         # setup the DBUS service
         session_bus = dbus.SessionBus()
-        name = dbus.service.BusName('net.jozilla.FoodBot.Presence.FaceDetectionDaemon',
+        name = dbus.service.BusName('net.jozilla.Facade.FaceDetectionDaemon',
                                     bus=session_bus)
-        obj = Daemon(name)
+        obj = FacadeDaemon(name)
 
         # run the mainloop
         mainloop = gobject.MainLoop()

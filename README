@@ -1,0 +1,43 @@
+Facade README
+=============
+
+Facade is a small program that tries to determine a user's presence
+using a webcam and face detection.  If no face has been detected for a
+period of 10 seconds, it assumes the user is away from his desk (or at
+least not paying attention to the screen). 
+
+Facade has a custom status icon that pops up notification bubbles
+whenever a presence change occurs. It also sets the user's IM
+status by connecting to Pidgin's D-Bus interface.
+
+Copyright (C) 2008 Jo Vermeulen <jo.vermeulen@uhasselt.be>
+
+This software is licensed under the GPL, see COPYING for more details.
+
+Feedback is always welcome!
+
+Dependencies
+------------
+
+- GNU/Linux
+- a webcam 
+- Python*
+- ctypes (included by default as of Python 2.5)
+- OpenCV
+- PyGTK (for the GUI)
+- python-notify
+- python-dbus
+- dbus*
+- hal*
+
+* Most likely already installed on your GNU/Linux distribution
+
+Acknowledgements
+----------------
+
+Thanks to Gary Bishop for releasing CVtypes [1], an easy-to-use
+ctypes-based wrapper for OpenCV.
+
+----
+
+[1] http://wwwx.cs.unc.edu/~gb/wp/blog/2007/02/04/python-opencv-wrapper-using-ctypes/

@@ -1,0 +1,11 @@
+Usage
+-----
+
+To run the D-Bus daemon:
+
+$ ./facadedaemon.py
+
+To start detecting presence:
+
+$ ./facadeclient.py
+

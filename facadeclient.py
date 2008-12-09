@@ -1,3 +1,23 @@
+#! /usr/bin/env python
+#
+# Facade -- Detect presence automatically with a webcam.
+# Copyright (C) 2008  Jo Vermeulen
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
 import gobject
 import dbus
 if getattr(dbus, 'version', (0,0,0)) >= (0,41,0):
@@ -6,7 +26,7 @@ if getattr(dbus, 'version', (0,0,0)) >= (0,41,0):
 STATUS_AVAILABLE = 2
 STATUS_AWAY = 5
 
-class PresenceClient(object):
+class FacadeClient(object):
     def __init__(self):
         self.setup()
 
@@ -18,9 +38,9 @@ class PresenceClient(object):
         self.purple = dbus.Interface(obj, 'im.pidgin.purple.PurpleInterface')
 
         # create face recognition object and add a callback for presence changes
-        obj = self.bus.get_object('net.jozilla.FoodBot.Presence.FaceDetectionDaemon', '/Daemon')
+        obj = self.bus.get_object('net.jozilla.Facade.FaceDetectionDaemon', '/Daemon')
         self.face_recog = dbus.Interface(obj,
-                                         'net.jozilla.FoodBot.Presence.FaceDetectionDaemonInterface')
+                                         'net.jozilla.Facade.FaceDetectionDaemonInterface')
         self.face_recog.connect_to_signal('presence_changed', self.presence_changed_handler)
 
         # create new statuses
@@ -51,7 +71,7 @@ class PresenceClient(object):
             self.purple.PurpleSavedstatusActivate(self.away)
 
 if __name__ == '__main__':
-    c = PresenceClient()    
+    c = FacadeClient()    
     print 'Calling start.'
     c.start()
     print 'Go!'

@@ -1,0 +1,19 @@
+Unfinished:
+    * Add support for other sensors (e.g. Bluetooth phone, proximity sensor, 
+      mouse/keyboard activity, etc.)
+    * Port to Ubuntu Mobile
+
+Improvements:
+    * Provide a Debian package (or Python egg)
+
+    * Start the daemon automatically through D-Bus activation
+
+    * Create another D-Bus service for hal.DeviceManager, to allow the
+      hardware to be disconnected and connected during the lifecycle
+      of the daemon.
+
+Documentation:
+    * Provide documentation for the D-Bus API
+
+    * Complete the documentation of the current code 
+
