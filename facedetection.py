@@ -36,8 +36,27 @@ class FaceDetector:
         """Setup the webcam device and different windows."""
         device = 0 # assume we want the first device
         capture = cv.CreateCameraCapture(0)
+
+        # set the width/height of the captured image
+        # this won't work on Windows (*sigh*)
         cv.SetCaptureProperty(capture, cv.CAP_PROP_FRAME_WIDTH, width)
         cv.SetCaptureProperty(capture, cv.CAP_PROP_FRAME_HEIGHT, height)
+
+        # get the width/height of the captured image
+        # this won't work on Windows (*sigh*)
+        self.width = cv.GetCaptureProperty(capture, cv.CAP_PROP_FRAME_WIDTH)
+        self.height = cv.GetCaptureProperty(capture, cv.CAP_PROP_FRAME_HEIGHT)
+
+        if self.width == 0 and self.height == 0: # Windows
+            self.width, self.height = 320,240 # set to default
+
+        # set default face size and body size, according to the camera resolution.
+        ratio = (640 / self.width)
+        face_axis = int(50 / ratio)
+        body_axis = int(125 / ratio)
+        print (face_axis, body_axis)
+        self.face_size = cv.Size(face_axis, face_axis)
+        self.body_size = cv.Size(body_axis, body_axis)
 
         # check if capture device is OK
         if not capture:
@@ -91,7 +110,7 @@ class FaceDetector:
         faces = cv.HaarDetectObjects(grayscale, self.face_cascade, storage,
                                      1.2, 2,
                                      cv.HAAR_DO_CANNY_PRUNING,
-                                     cv.Size(50, 50))
+                                     self.face_size)
 
         if faces:
             # faces detected
@@ -106,7 +125,7 @@ class FaceDetector:
             # detect body
             bodies = cv.HaarDetectObjects(grayscale, self.body_cascade, storage,
                                          1.1, 3, 0,
-                                         cv.Size(125, 125))
+                                         self.body_size)
 
             if bodies:
                 # body detected
