@@ -33,19 +33,22 @@ pygtk.require('2.0')
 import gtk
 import pynotify
 
-from facedetection import FaceDetector
+from webcampresence import webcamPresence
+from hookpresence import hookPresence
 
 class FacadeDaemon(dbus.service.Object):
     def __init__(self, bus_name, object_path="/Daemon"):
         dbus.service.Object.__init__(self, bus_name, object_path)
+        self.loop = False
         self.setup()
-        self.search_faces = False
-        self.face_thread = None
 
     def setup(self):
-        self.detector = FaceDetector(show_cam=True)
+        self.webcam = webcamPresence()
+        self.hook = hookPresence()
+        self.devices = { 'mouse': False, 
+                         'keyboard': False, 
+                         'webcam': False }
 
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.status_icon = gtk.StatusIcon()
         self.status_icon.set_from_file('available.png')
         self.status_icon.set_tooltip('Available')
@@ -58,66 +61,44 @@ class FacadeDaemon(dbus.service.Object):
     @dbus.service.method('net.jozilla.Facade.FaceDetectionDaemonInterface')
     def start(self):
         """Start the loop that keeps tracking the user's face."""
-        if self.search_faces == False:
-            self.search_faces = True
 
         # start a new thread to handle face detection
-        self.face_thread = Thread(target=self.detect)
-        self.face_thread.start()
+        self.webcam_thread = self.webcam.start()
+        self.hook_thread = self.hook.start()
+
+        self.loop = True 
+        self.detect_thread = Thread(target=self.detect)
+        self.detect_thread.start()
 
     @dbus.service.method('net.jozilla.Facade.FaceDetectionDaemonInterface')
     def stop(self):
-        self.search_faces = False
+        self.loop = False
 
-        # stop the face detection thread (if running)
-        if self.face_thread != None:
-            self.face_thread.join()
-            self.face_thread = None
+        # stop the detection thread (if running)
+        if self.detect_thread != None:
+            self.detect_thread.join()
+            self.detect_thread = None
 
     def detect(self):
-        # remember the number of seconds since we last detected a
-        # face, and assume we detected one at the start        
-        last_time = datetime.now() 
-
-        # if we don't detect anything for 10 seconds, assume user is away
+        # If we don't detect anything for 10 seconds, assume the user
+        # is away.
+        last_time = datetime.now()
         away_treshold = timedelta(seconds=10)
 
-        # eliminate false positives by requiring at least 25 detections
-        # in a period of 5 seconds to allow the status to be changed
-        # to available.
-        fp_num = 25
-        fp_duration = timedelta(seconds=5)
-        fp_list = [last_time]
-        fp_list[1:] = [datetime.fromtimestamp(0)] * (fp_num - 1)
+        while self.loop:
+            self.devices['keyboard'] = self.hook.keyboardPresent()
+            self.devices['mouse'] = self.hook.mousePresent()
+            self.devices['webcam'] = self.webcam.present
 
-        fi = 0
-        at_desk = False
-        while self.search_faces:
-            # detect a face/body
-            (detected, is_face) = self.detector.fetch_and_detect()
-            if detected:
-                fi = fi + 1
-                last_time = datetime.now()
-                fp_list[fi % fp_num] = last_time
-
-                if not at_desk:
-                    # possible switch to available
-                    if fp_list[fi % fp_num] - fp_list[0] < fp_duration:
-                        # we detected {fp_num} faces during the last 5 seconds
-                        print '%s - %s < %s' % (fp_list[fp_num-1], fp_list[0], fp_duration)
-                        at_desk = True
+            if True in self.devices.values():
+                last_time = datetime.now() 
+                self.show_presence(True, last_time)
+                print 'available >', self.devices
             else:
-                if at_desk:
-                    # possible switch to away
-                    if datetime.now() - last_time > away_treshold:
-                        at_desk = False
+                if datetime.now() - last_time > away_treshold:
+                    self.show_presence(False, last_time)
 
-            if at_desk:
-                print 'at desk'
-            else:
-                print 'away'
-            
-            self.show_presence(at_desk, last_time)
+                print 'away for', (datetime.now() - last_time), '>', self.devices
 
     @dbus.service.signal('net.jozilla.FoodBot.Presence.FaceDetectionDaemonInterface')
     def presence_changed(self, presence, last_update):
