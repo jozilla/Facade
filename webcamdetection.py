@@ -20,7 +20,7 @@
 
 from CVtypes import cv
 
-class FaceDetector:
+class WebcamDetector:
     def __init__(self, resolution=(640,480), show_cam=False):
         self.setup(resolution, show_cam)
 
@@ -50,25 +50,11 @@ class FaceDetector:
         if self.width == 0 and self.height == 0: # Windows
             self.width, self.height = 320,240 # set to default
 
-        # set default face size and body size, according to the camera resolution.
-        ratio = (640 / self.width)
-        face_axis = int(50 / ratio)
-        body_axis = int(125 / ratio)
-        print (face_axis, body_axis)
-        self.face_size = cv.Size(face_axis, face_axis)
-        self.body_size = cv.Size(body_axis, body_axis)
-
         # check if capture device is OK
         if not capture:
             print "Error opening capture device"
 
         self.capture = capture
-
-        # load cascades
-        self.face_cascade = cv.LoadHaarClassifierCascade('haarcascade_frontalface_alt.xml',
-                                                         cv.Size(1,1))
-        self.body_cascade = cv.LoadHaarClassifierCascade('haarcascade_upperbody.xml',
-                                                         cv.Size(1,1))
 
         self.show_cam = show_cam
         if self.show_cam:
@@ -83,8 +69,8 @@ class FaceDetector:
 
         cv.Flip(frame, None, 1)
 
-        # face detection
-        tpl = self.detect(frame) # = (detected something?, is it a face?)
+        # detection
+        tpl = self.detect(frame) # = (detected something?)
 
         # update webcam image
         if self.show_cam:
@@ -92,6 +78,29 @@ class FaceDetector:
 
         return tpl 
 
+    def detect(self, image):
+        pass
+
+class FaceDetector(WebcamDetector):
+    def __init__(self, resolution=(640,480), show_cam=False):
+        self.setup(resolution, show_cam)
+
+    def setup(self, (width, height), show_cam):
+        """Setup the cascades."""
+        WebcamDetector.setup(self, (width, height), show_cam)
+        # set default face size and body size, according to the camera resolution.
+        ratio = (640 / self.width)
+        face_axis = int(50 / ratio)
+        body_axis = int(125 / ratio)
+        print (face_axis, body_axis)
+        self.face_size = cv.Size(face_axis, face_axis)
+        self.body_size = cv.Size(body_axis, body_axis)
+
+        # load cascades
+        self.face_cascade = cv.LoadHaarClassifierCascade('haarcascade_frontalface_alt.xml',
+                                                         cv.Size(1,1))
+        self.body_cascade = cv.LoadHaarClassifierCascade('haarcascade_upperbody.xml',
+                                                         cv.Size(1,1))
     def detect(self, image):
         size = cv.GetSize(image)
 
@@ -145,4 +154,5 @@ class FaceDetector:
         cv.ReleaseMemStorage(storage)
 
         return (detected, is_face)
+
 

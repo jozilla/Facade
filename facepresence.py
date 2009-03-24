@@ -30,9 +30,9 @@ pygtk.require('2.0')
 import gtk
 import gobject
 
-from facedetection import FaceDetector
+from webcamdetection import FaceDetector
 
-class webcamPresence(Thread):
+class FacePresence(Thread):
     def __init__(self):
         self.setup()
         Thread.__init__(self)
@@ -98,6 +98,6 @@ class webcamPresence(Thread):
 
 if __name__ == '__main__':
     
-    bt = webcamPresence()   
+    bt = FacePresence()   
     bt.start()
 

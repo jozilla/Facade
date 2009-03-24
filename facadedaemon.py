@@ -33,7 +33,7 @@ pygtk.require('2.0')
 import gtk
 import pynotify
 
-from webcampresence import webcamPresence
+from facepresence import FacePresence
 from hookpresence import hookPresence
 
 class FacadeDaemon(dbus.service.Object):
@@ -43,11 +43,11 @@ class FacadeDaemon(dbus.service.Object):
         self.setup()
 
     def setup(self):
-        self.webcam = webcamPresence()
+        self.face = FacePresence()
         self.hook = hookPresence()
         self.devices = { 'mouse': False, 
                          'keyboard': False, 
-                         'webcam': False }
+                         'face': False }
 
         self.status_icon = gtk.StatusIcon()
         self.status_icon.set_from_file('available.png')
@@ -63,7 +63,7 @@ class FacadeDaemon(dbus.service.Object):
         """Start the loop that keeps tracking the user's face."""
 
         # start a new thread to handle face detection
-        self.webcam_thread = self.webcam.start()
+        self.face_thread = self.face.start()
         self.hook_thread = self.hook.start()
 
         self.loop = True 
@@ -88,7 +88,7 @@ class FacadeDaemon(dbus.service.Object):
         while self.loop:
             self.devices['keyboard'] = self.hook.keyboardPresent()
             self.devices['mouse'] = self.hook.mousePresent()
-            self.devices['webcam'] = self.webcam.present
+            self.devices['face'] = self.face.present
 
             if True in self.devices.values():
                 last_time = datetime.now() 
