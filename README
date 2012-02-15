@@ -10,7 +10,7 @@ Facade has a custom status icon that pops up notification bubbles
 whenever a presence change occurs. It also sets the user's IM
 status by connecting to Pidgin's D-Bus interface.
 
-Copyright (C) 2008 Jo Vermeulen <jo.vermeulen@uhasselt.be>
+Copyright (C) 2008-2012 Jo Vermeulen <jo.vermeulen@uhasselt.be>
 
 This software is licensed under the GPL, see COPYING for more details.
 
